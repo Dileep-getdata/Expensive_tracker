@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div>
+        <h1>Booking App</h1>
+        <div>
+            <form  id="myform" method="post">
+                <label for="amount">Choose Expense Amount:</label><br>
+                <input type="text" id="amount" name="amount" placeholder="Enter Amount"><br>
+                <label for="description">Choose Description:</label><br>
+                <input type="text" id="description" name="description" placeholder="Ammount Spended "><br>
+                <label for="category">Choose Category:</label><br>
+                <select name="category" id="category">
+                    <option value="fuel">Fuel</option>
+                    <option value="electricity">Electricity</option>
+                    <option value="food">Food</option>
+                    <option value="movie">Movie</option>
+                </select><br>
+                <button type="submit"  id="submit">Add Expense</button>
+
+                <!-- <label for="ammount"></label>
+        <input id="ammount" name="ammount" type="text"> &nbsp;&nbsp;
+        <label for="description">Choose Description:</label>
+        <input id="description" name="description" type="text"> &nbsp;&nbsp; -->
+        
+                
+            </form>
+            <form  id="updateform" method="post" style="display: none;">
+                <label for="updateamount">Update Expense Amount:</label><br>
+                <input type="text" id="updateamount" name="amount" placeholder="UPDATE AMMOUNT"><br>
+                <label for="updatedescription">Phone No</label><br>
+                <input type="text" id="updatedescription" name="description" placeholder="UPDATE Description"><br>
+                <label for="updatecategory">Email</label><br>
+                <input type="tex" id="updatecategory" name="category" placeholder="Enter category"><br>
+                <input type="hidden" id="id" name="id">
+                <button style=" background-color: green;" type="submit" id="update">Update</button>
+            </form>
+        </div>
+        <ul id="list-User">
+
+        </ul>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"></script>
+<script>
+
+// DOM Content loaded( function to load page with list)
+document.addEventListener('DOMContentLoaded', async (event) => {
+    try{
+    const response= axios.get('http://localhost:4000/expensive/get-expense')
+    .then(response=>{
+        for(var i=0;i<response.data.allExpense.length;i++){
+            // console.log(response.data.alluser[i].id);
+            display(response.data.allExpense[i]);
+        }
+    })                    
+    }
+    catch(err)
+        {console.log(err)};        
+       
+});
+
+function display(data_obj){            
+        let represent=document.getElementById('list-User');
+        const li=`<li class="itemList" id=${data_obj.id}>${data_obj.amount} - ${data_obj.description} - ${data_obj.category}
+            
+            <button onclick="delUser('${data_obj.id}')" id="dlt_user" style="float:right;">Delete</button>
+            <button onclick="editUser('${data_obj.id}')" id="edit_user" style="float:right;">Edit expense</button>
+            
+            </li><br>`;
+        represent.innerHTML=represent.innerHTML+li;
+    }
+
+const myForm=document.getElementById('myform');
+myForm.addEventListener('submit',userDetails);
+async function userDetails(e){
+    e.preventDefault();
+    console.log('Done');    
+    const amount=e.target.amount.value;
+    const description=e.target.description.value;
+    const category=e.target.category.value;
+    const obj={amount,description,category};
+    console.log(obj);
+    axios.post("http://localhost:4000/expensive/add-expense",obj)
+    .then(response=>{
+        console.log(response.data.newTrackerDetails.amount);
+        display(response.data.newTrackerDetails);
+    })
+    .catch((err)=>{
+        document.body.innerHTML=document.body.innerHTML+"<h4>Something went wrong</h4>";
+        console.log(err);
+    });
+    document.getElementById('amount').value="";
+    document.getElementById('description').value="";
+    document.getElementById('category').value="";
+}
+
+// Edit Button function
+ 
+function editUser(prodId){
+    // console.log(prodId) 
+    
+    axios.get(`http://localhost:4000/expensive/edit-idPost/${prodId}`)
+    .then(response=>{
+        document.getElementById('myform').style.display='none';
+        document.getElementById('updateform').style.display='inline';
+        console.log(response);
+        document.getElementById('updateamount').value=response.data.idDetails[0].amount;
+        document.getElementById('updatedescription').value=response.data.idDetails[0].description;
+        document.getElementById('updatecategory').value=response.data.idDetails[0].category;
+        document.getElementById('id').value=response.data.idDetails[0].id;
+        
+    }).then(()=>{
+        const updateForm=document.getElementById('updateform');
+        updateform.addEventListener('submit',update);
+        async function update(e){
+            e.preventDefault()
+            // const prodId=e.target.id.value;
+            
+            const amount=e.target.amount.value;
+            const description=e.target.description.value;
+            const category=e.target.category.value;
+            const obj={amount,description,category};
+            console.log(obj);
+            axios.put(`http://localhost:4000/expensive/update-idPost/${prodId}`,obj)
+        }
+
+    })
+    .catch(err=>{
+        console.log(err)
+    })    
+
+};
+
+
+// Delete the single user
+function delUser(prodId){
+    // console.log(prodId)     
+    axios.delete(`http://localhost:4000/expensive/delete-expenseId/${prodId}`)
+    .then(response=>{
+        console.log(response);
+    })
+    .catch(err=>console.log(err))
+}
+          
+    </script>
+</html>
