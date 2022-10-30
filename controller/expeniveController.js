@@ -45,6 +45,7 @@ exports.updateUser=async(req,res,next)=>{
         const category=req.body.emacategoryil;
         await Tracker.update({amount:amount,category:category,description:description},{where:{id:proId}});
         res.status(201);
+       
     }catch(err){
         res.status(500).json({error:err});
     }
